@@ -88,6 +88,7 @@ cc_library_static {
     min_sdk_version: "29",
 
     srcs: [
+        "FFMPEGSoftCodec.cpp",
         "HevcUtils.cpp",
         "MediaSource.cpp",
         "Utils.cpp",
@@ -97,6 +98,11 @@ cc_library_static {
     shared_libs: [
         "aconfig_libgui_flags_c_lib",
         "liblog",
+        "libstagefright_omx_utils",
+        "android.hidl.allocator@1.0",
+        "android.hidl.memory@1.0",
+        "android.hidl.token@1.0-utils",
+        "libhidlmemory",
     ],
 
     static_libs: [
@@ -116,11 +122,20 @@ cc_library_static {
         "media_plugin_headers",
     ],
 
+    export_shared_lib_headers: [
+        "android.hidl.token@1.0-utils",
+    ],
+
     cflags: [
         "-Wall",
         "-Werror",
         "-Wno-error=deprecated-declarations",
         "-Wno-multichar",
+    ],
+
+    include_dirs: [
+        // FFMPEG plugin
+        "external/stagefright-plugins/include"
     ],
 
     sanitize: {
@@ -140,6 +155,9 @@ cc_library_static {
             cflags: [
                 "-DDISABLE_AUDIO_SYSTEM_OFFLOAD",
             ],
+        },
+        android: {
+            shared_libs: ["libstagefright_omx_utils"],
         },
     },
 }
@@ -256,6 +274,7 @@ cc_library {
         "CodecErrorLog.cpp",
         "CodecTrace.cpp",
         "CryptoAsync.cpp",
+        "FFMPEGSoftCodec.cpp",
         "FrameDecoder.cpp",
         "HevcUtils.cpp",
         "InterfaceUtils.cpp",
@@ -305,6 +324,7 @@ cc_library {
         "android.hardware.drm@1.0",
         "android.hardware.media.omx@1.0",
         "android.hidl.allocator@1.0",
+        "android.hidl.token@1.0-utils",
         "libaconfig_storage_read_api_cc",
         "libaudioclient_aidl_conversion",
         "libaudiofoundation",
@@ -375,8 +395,14 @@ cc_library {
         "media_quality_headers",
     ],
 
+    include_dirs: [
+        // FFMPEG plugin
+        "external/stagefright-plugins/include"
+    ],
+
     export_shared_lib_headers: [
         "android.hidl.allocator@1.0",
+        "android.hidl.token@1.0-utils",
         "framework-permission-aidl-cpp",
         "libgui",
         "libhidlmemory",
