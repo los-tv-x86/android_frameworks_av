@@ -467,9 +467,28 @@ AImageReader::acquireImageLocked(/*out*/AImage** image, /*out*/int* acquireFence
                 "configured: %x",
                 __FUNCTION__, bufferUsage, readerUsage);
 
-        ALOGV_IF(readerFmt != bufferFmt,
-                "%s: reader format(0x%x) and buffer format(0x%x) are not same" ,
-                __FUNCTION__, readerFmt, bufferFmt);
+        if (readerFmt != bufferFmt) {
+            if (readerFmt == HAL_PIXEL_FORMAT_YCbCr_420_888 && isPossiblyYUV(bufferFmt)) {
+                // Special casing for when producer switches to a format compatible with flexible
+                // YUV.
+                mHalFormat = bufferFmt;
+                ALOGD("%s: Overriding buffer format YUV_420_888 to 0x%x.", __FUNCTION__, bufferFmt);
+            } else if (readerFmt == HAL_PIXEL_FORMAT_YCbCr_420_888 && bufferFmt == HAL_PIXEL_FORMAT_RGB_565) {
+                //YUV format is not supported on virtio gpu, fall back to RGB565
+                mHalFormat = bufferFmt;
+                ALOGD("%s: Overriding buffer format YUV_420_888 to 0x%x.", __FUNCTION__, bufferFmt);
+            } else {
+                // Return the buffer to the queue. No need to provide fence, as this buffer wasn't
+                // used anywhere yet.
+                mBufferItemConsumer->releaseBuffer(*buffer);
+                returnBufferItemLocked(buffer);
+
+                ALOGE("%s: Output buffer format: 0x%x, ImageReader configured format: 0x%x",
+                        __FUNCTION__, bufferFmt, readerFmt);
+
+                return AMEDIA_ERROR_UNKNOWN;
+            }
+        }
     }
 
     if (mHalFormat == HAL_PIXEL_FORMAT_BLOB) {

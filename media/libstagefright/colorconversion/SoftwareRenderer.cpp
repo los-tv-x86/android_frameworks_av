@@ -98,6 +98,15 @@ void SoftwareRenderer::resetFormatIfChanged(
         dataSpaceChangedForPlanar16 = true;
     }
 
+    char property[PROPERTY_VALUE_MAX];
+    bool noYUV = false;
+
+    if (property_get("ro.yuv420.disable", property, "false") > 0) {
+        if (strcmp(property, "true") == 0) {
+            noYUV = true;
+        }
+    }
+
     if (static_cast<int32_t>(mColorFormat) == colorFormatNew &&
         mWidth == widthNew &&
         mHeight == heightNew &&
@@ -105,7 +114,8 @@ void SoftwareRenderer::resetFormatIfChanged(
         mCropTop == cropTopNew &&
         mCropRight == cropRightNew &&
         mCropBottom == cropBottomNew &&
-        !dataSpaceChangedForPlanar16) {
+        !dataSpaceChangedForPlanar16 &&
+        !noYUV) {
         // Nothing changed, no need to reset renderer.
         return;
     }
@@ -134,6 +144,9 @@ void SoftwareRenderer::resetFormatIfChanged(
             case OMX_COLOR_FormatYUV420SemiPlanar:
             case OMX_TI_COLOR_FormatYUV420PackedSemiPlanar:
             {
+                if (noYUV) {
+                    break;
+                }
                 halFormat = HAL_PIXEL_FORMAT_YV12;
                 bufWidth = (mCropWidth + 1) & ~1;
                 bufHeight = (mCropHeight + 1) & ~1;
@@ -164,6 +177,9 @@ void SoftwareRenderer::resetFormatIfChanged(
                     // use render engine to convert it to RGB if needed.
                     halFormat = HAL_PIXEL_FORMAT_RGBA_1010102;
                 } else {
+                    if (noYUV) {
+                        break;
+                    }
                     halFormat = HAL_PIXEL_FORMAT_YV12;
                 }
                 bufWidth = (mCropWidth + 1) & ~1;
