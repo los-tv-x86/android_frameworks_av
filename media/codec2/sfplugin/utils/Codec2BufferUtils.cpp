@@ -1137,6 +1137,7 @@ GraphicView2MediaImageConverter::GraphicView2MediaImageConverter(
             // TODO: support MediaImage layout
             switch (mClientColorFormat) {
                 case COLOR_FormatSurface:
+                case COLOR_Format16bitRGB565:
                 case COLOR_FormatRGBFlexible:
                 case COLOR_Format24bitBGR888:
                 case COLOR_Format24bitRGB888:
