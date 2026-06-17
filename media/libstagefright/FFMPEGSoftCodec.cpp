@@ -420,6 +420,7 @@ status_t FFMPEGSoftCodec::getVideoPortFormat(OMX_U32 portIndex, int coding,
                 version = kTypeRVVer_9;
             }
             notify->setString("mime", MEDIA_MIMETYPE_VIDEO_RV);
+            notify->setInt32("wmv-version", version);
             break;
         }
     }
